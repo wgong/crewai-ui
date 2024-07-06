@@ -3,8 +3,8 @@
 ### Setup
 
 ```
-$ cd ~/projects/1_Biz/zilab/yeyu_lab_youtube_demos
-$ streamlit run CrewAI_Streamlit.py
+$ cd ~/projects/wgong/crewai-ui
+$ streamlit run streamlit/CrewAI_Streamlit.py
 
 ```
 

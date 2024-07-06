@@ -7,12 +7,15 @@ from crewai import Crew, Process, Agent, Task
 from langchain_core.callbacks import BaseCallbackHandler
 from typing import TYPE_CHECKING, Any, Dict, Optional
 from langchain_openai import ChatOpenAI
+from langchain.agents import Tool
+# from crewai_tools import (
+#     SerperDevTool, ScrapeWebsiteTool, 
+# #     WebsiteSearchTool, MDXSearchTool,
+# #     DirectoryReadTool, FileReadTool, BaseTool
+# )
+from langchain_community.utilities import GoogleSerperAPIWrapper
 
-from crewai_tools import (
-    SerperDevTool, ScrapeWebsiteTool, 
-#     WebsiteSearchTool, MDXSearchTool,
-#     DirectoryReadTool, FileReadTool, BaseTool
-)
+# from langchain.agents import load_tools
 
 from dotenv import load_dotenv
 import os
@@ -31,6 +34,20 @@ avators = {
     "Writer":"https://cdn-icons-png.flaticon.com/512/320/320336.png",
     "Reviewer":"https://cdn-icons-png.freepik.com/512/9408/9408201.png"
 }
+
+serper_api_key=os.getenv("SERPER_API_KEY")
+# print(f"serper_api_key = {serper_api_key}")
+search = GoogleSerperAPIWrapper(serper_api_key=serper_api_key)
+
+# # Create and assign the search tool to an agent
+serper_tool = Tool(
+  name="Intermediate Answer",
+  func=search.run,
+  description="Useful for search-based queries",
+)
+
+# tools = load_tools(["google-serper"])
+
 
 class MyCustomHandler(BaseCallbackHandler):
    
@@ -57,7 +74,7 @@ writer = Agent(
                       You are open to reviewer's comments and willing to iterate its article based on these comments.
                       ''',
     goal="Write and iterate a decent blog post.",
-    tools=[SerperDevTool(), ScrapeWebsiteTool()],  # This can be optionally specified; defaults to an empty list
+    tools=[serper_tool],  # This can be optionally specified; defaults to an empty list
     llm=llm,
     callbacks=[MyCustomHandler("Writer")],
 )
@@ -68,7 +85,7 @@ reviewer = Agent(
                  You will give review comments upon reading entire article, so you will not generate anything when the article is not completely delivered. 
                   You never generate blogs by itself.''',
     goal="list builtins about what need to be improved of a specific blog post. Do not give comments on a summary or abstract of an article",
-    # tools=[SerperDevTool(), ScrapeWebsiteTool()],  # This can be optionally specified; defaults to an empty list
+    # tools=[serper_tool],  # This can be optionally specified; defaults to an empty list
     llm=llm,
     callbacks=[MyCustomHandler("Reviewer")],
 )
